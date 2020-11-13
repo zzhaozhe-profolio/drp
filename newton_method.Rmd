@@ -16,7 +16,7 @@ dt_memory = read.csv(file, header = TRUE, sep = ',')
 
 ```{r IRLS}
 # set seed
-set.seed(10)
+set.seed(11)
 dt_memory$Age = rpois(nrow(dt_memory), 5)
 dt_memory$Mistake = rnorm(nrow(dt_memory), 0 , 2)
 
