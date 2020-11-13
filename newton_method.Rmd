@@ -1,0 +1,65 @@
+---
+title: "IRLS"
+author: "Zhe Zhao"
+date: "10/29/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# read the data
+path = getwd()
+file = sprintf('%s/Memory.csv', path)
+dt_memory = read.csv(file, header = TRUE, sep = ',')
+```
+
+```{r IRLS}
+# set seed
+set.seed(10)
+dt_memory$Age = rpois(nrow(dt_memory), 5)
+dt_memory$Mistake = rnorm(nrow(dt_memory), 0 , 2)
+
+X = as.matrix(cbind(1, dt_memory[, 2:3]))
+Y = as.matrix(dt_memory[, 1])
+
+# Initialze Beta
+Beta = matrix(rnorm(3, mean = 0, sd=2), nrow = 3, ncol = 1)
+
+# max iteration
+max_i = 1e3
+
+# counting the iteration number
+i = 0
+
+while (i <= max_i) {
+  # calculate mu
+  mu = 1/ (1 + exp(-X %*% Beta))
+  
+  # calculate W
+  W = t(mu) %*% ( matrix(1, nrow = nrow(mu), ncol = 1) - mu )  
+  W = diag(as.numeric(W), nrow = nrow(X), ncol = nrow(X))
+  
+  # calculate Z
+  Z = X %*% Beta + solve(W) %*% (Y - mu)
+  
+  new_Beta = solve(t(X) %*% W %*% X) %*% t(X) %*% W %*% Z
+  
+  # update i
+  i = i+1
+  
+  if( sum(abs(new_Beta - Beta)) < 1e-4 ){
+    break
+  }
+  
+  Beta = new_Beta
+  
+}
+
+```
+
+```{r}
+mod1 = glm(Exposure~Age+Mistake, family = 'binomial', data = dt_memory)
+summary(mod1)
+```
+
