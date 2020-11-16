@@ -14,7 +14,7 @@ file = sprintf('%s/Memory.csv', path)
 dt_memory = read.csv(file, header = TRUE, sep = ',')
 ```
 
-```{r IRLS}
+```{r IRLS logistic}
 # set seed
 set.seed(10)
 dt_memory$Age = rpois(nrow(dt_memory), 4)
@@ -63,3 +63,23 @@ mod1 = glm(Exposure~Age+Mistake, family = 'binomial', data = dt_memory)
 summary(mod1)
 ```
 
+```{r IRLS Poisson}
+X <- cbind(1, X)
+beta <- matrix(rep(0, ncol(X)), nrow = ncol(X), ncol = 1) #initialize beta == 0
+i <- 1 #counting iteration
+maxi = nrow(X)
+ones <- c(rep(1,100))
+
+while(i <= maxi){
+  eta <- X %*% beta
+  mu <- exp(eta)
+  V <- as.vector(mu)
+  w <- diag(V)
+  z <- eta + diag(ones/V)%*%(Y - mu)
+  blast <- beta
+  beta <- solve(t(X)%*%w%*%X)%*%t(X)%*%w%*%z
+  if(abs(beta[2,] - blast[2,]) <= 1e-4)
+    break
+  i <- i + 1
+}
+```
